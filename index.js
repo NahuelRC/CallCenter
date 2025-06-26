@@ -1,21 +1,19 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import axios from 'axios';
-import twilio from 'twilio';
+import webhook from './api/webhook.js';
 
 dotenv.config();
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioClient = twilio(accountSid, authToken);
+// MUY IMPORTANTE: parsear x-www-form-urlencoded
+app.use(express.urlencoded({ extended: false }));
+// Por si lo mandás como JSON también
+app.use(express.json());
 
-// tu endpoint webhook y lógica van acá...
+app.post('/webhook', webhook);
 
-app.listen(3000, () => {
-  console.log('Servidor escuchando en puerto 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor en http://localhost:${PORT}`);
 });
