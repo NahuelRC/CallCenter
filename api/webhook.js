@@ -1,4 +1,5 @@
-import { MessagingResponse } from 'twilio';
+import twilio from 'twilio';
+const { MessagingResponse } = twilio;
 import axios from 'axios';
 
 export default async function handler(req, res) {
