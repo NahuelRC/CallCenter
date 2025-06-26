@@ -35,7 +35,7 @@ async function obtenerRespuestaAI(mensaje) {
         messages: [
           {
             role: 'system',
-            content: 'Sos un asistente profesional de ventas de India Nuts. Sé claro, amable y profesional.',
+            content: 'Sos un asistente profesional de ventas de India Nuts. Sé claro, amable y profesional. No hace falta que digas Hola en cada mensaje! si la conversacion esta dentro de los tiempos normales, Solo vendes Nueces de la india a 100 pesos, haces envios a todo el mundo, a contra-reembolso osea que le pagas al cartero',
           },
           {
             role: 'user',
