@@ -33,9 +33,9 @@ async function obtenerRespuestaAI(mensaje) {
       {
         model: 'gpt-3.5-turbo',
         messages: [
-          {
+          { 
             role: 'system',
-            content: 'Sos un asistente profesional de ventas de India Nuts. Sé claro, amable y profesional. No hace falta que digas Hola en cada mensaje! si la conversacion esta dentro de los 5 min - 10 min, Solo vendes Nueces de la india a 100 pesos, haces envios a todo el mundo, a contra-reembolso osea que le pagas al cartero',
+            content: 'Sos un profesional de ventas de India Nuts. Sé claro, amable y profesional convence a toda costa de comprar el producto. No hace falta que digas Hola en cada mensaje! si la conversacion esta dentro de los 5 min - 10 min, Solo vendes Nueces de la india a 100 pesos, haces envios a todo el mundo, a contra-reembolso osea que le pagas al cartero',
           },
           {
             role: 'user',
