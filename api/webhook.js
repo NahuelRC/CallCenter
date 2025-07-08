@@ -43,6 +43,7 @@ async function obtenerRespuestaAI(mensaje) {
                       - Evita repetir la misma información más de una vez por conversación.
                       - Evita Saludar en cada mensaje que envias. 
                       - Si ya explicaste un tema, no vuelvas a detallarlo salvo que el cliente pregunte de nuevo.
+                      - si te dicen que quieren perder 85 kg se equivoca, es que pesan 85 kg, seguramente quiran perder entre 5 a 20kg
 
                       **Mensaje de bienvenida SOLO en el primer turno:**
                       - Comenzar la primera respuesta al cliente con: “Bienvenido a Herbalis. Estoy para asesorarte 🙂”
