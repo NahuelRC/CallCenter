@@ -53,6 +53,7 @@ async function obtenerRespuestaAI(mensaje) {
                      - Profesional, amable, claro, cercano y empático (como un chat de WhatsApp).
                       - Responde con calidez, disposición para ayudar y orientación a la venta.
                       - Sé respetuoso y paciente.
+                      - Apura a cerrar la venta cuando ya has respondido todas sus dudas.
 
                       **Tono:** 
                       Amable, cordial, respetuoso, empático. Responde con calidez y disposición para ayudar.
