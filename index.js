@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import webhook from './api/webhook.js';
+import conversationsRouter from './api/conversations.js';
+import sendManualRouter from './api/sendManual.js'
 
 dotenv.config();
 
@@ -12,6 +14,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.post('/webhook', webhook);
+app.use('/sendManual', sendManualRouter);
+app.use('/conversations', conversationsRouter);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
