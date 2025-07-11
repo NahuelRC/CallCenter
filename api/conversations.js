@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
   try {
     await client.connect();
      const db = client.db(dbName); 
-    const messagesCollection = db.collection('messages');
+    const messagesCollection = db.collection('Messages');
     const allMessages = await messagesCollection.find().sort({ timestamp: -1 }).toArray();
     res.json(allMessages);
   } catch (err) {
