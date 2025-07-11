@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   await client.connect();
   const db = client.db(dbName);
-  await db.collection('messages').insertOne({
+  await db.collection('Messages').insertOne({
     from,
     to,
     body: message,
