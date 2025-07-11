@@ -13,7 +13,7 @@ console.log('✅ Conectado a MongoDB');
 
 const dbName = 'VentasWsp';
 const db = client.db(dbName);
-const messagesCollection = db.collection('messages');
+const messagesCollection = db.collection('Messages');
 
 export default async function handler(req, res) {
   try {
