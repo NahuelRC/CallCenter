@@ -3,7 +3,7 @@ import axios from 'axios';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 
-otenv.config();
+dotenv.config();
 
 // Conexión a MongoDB
 const MONGODB_URI = process.env.MONGODB_URI;
