@@ -1,19 +1,5 @@
 import twilio from 'twilio';
 import axios from 'axios';
-import { MongoClient } from 'mongodb';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-// Conexión a MongoDB
-const MONGODB_URI = process.env.MONGODB_URI;
-const client = new MongoClient(MONGODB_URI);
-await client.connect();
-console.log('✅ Conectado a MongoDB');
-
-const dbName = 'VentasWsp';
-const db = client.db(dbName);
-const messagesCollection = db.collection('Messages');
 
 export default async function handler(req, res) {
   try {
@@ -23,36 +9,12 @@ export default async function handler(req, res) {
 
     const incomingMsg = req.body.Body || '';
     const from = req.body.From || '';
-    const to = process.env.TWILIO_WHATSAPP_NUMBER;
-    const timestamp = new Date();
 
     console.log('Mensaje recibido:', incomingMsg);
-
-     await messagesCollection.insertOne({
-      from,
-      to,
-      body: incomingMsg,
-      timestamp,
-      direction: 'inbound',
-      sessionId: from,
-      answeredBy: 'USER'
-    });
 
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
 
-      // Guardar respuesta del bot (outbound)
-    await messagesCollection.insertOne({
-      from: to,
-      to: from,
-      body: respuestaIA,
-      timestamp: new Date(),
-      direction: 'outbound',
-      sessionId: from,
-      answeredBy: 'BOT'
-    });
-
-    // Responder a Twilio
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
