@@ -16,6 +16,13 @@ export default async function handler(req, res) {
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
 
+    await Venta.create({
+      from,
+      mensaje: incomingMsg,
+      respuesta: respuestaIA,
+      timestamp
+    });
+
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
