@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import webhook from './api/webhook.js';
 import conversationsRouter from './api/conversations.js';
 import sendManualRouter from './api/sendManual.js'
+import { conectarDB } from './db.js';
+
 
 dotenv.config();
 
@@ -19,6 +21,8 @@ app.use('/conversations', conversationsRouter);
 
 
 const PORT = process.env.PORT || 3000;
+await conectarDB()
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor en http://localhost:${PORT}`);
 });

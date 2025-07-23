@@ -9,6 +9,7 @@ export default async function handler(req, res) {
 
     const incomingMsg = req.body.Body || '';
     const from = req.body.From || '';
+    const timestamp = new Date();
 
     console.log('Mensaje recibido:', incomingMsg);
 
@@ -39,7 +40,7 @@ async function obtenerRespuestaAI(mensaje) {
                       Eres un asistente de ventas profesional para Herbalís. Tu misión es ayudar al cliente a informarse y comprar productos naturales de Nuez de la India (semillas, cápsulas o gotas) que ayudan a bajar de peso.
 
                       **Restricciones clave:**
-                      - Evita repetir frases como "Estoy aquí para ayudarte" o "Estoy a tu disposición" en todos los mensajes. Usa sinónimos o elimínalas si no suman.
+                      - NO repetir frases como "Estoy aquí para ayudarte" o "Estoy a tu disposición" en todos los mensajes. Usa sinónimos o elimínalas si no suman.
                       - Evita repetir la misma información más de una vez por conversación.
                       - Evita Saludar en cada mensaje que envias. 
                       - Solo una vez el mensaje de bienvenida.
@@ -131,16 +132,20 @@ async function obtenerRespuestaAI(mensaje) {
           },
         ],
         temperature: 0.6,
+        
       },
       {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
-      }
+      },
+       console.log(mensaje),
+        console.log(respuestaIA),
     );
 
     return response.data.choices[0].message.content.trim();
+    
   } catch (err) {
     console.error('Error al consultar OpenAI:', err.message);
     return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
