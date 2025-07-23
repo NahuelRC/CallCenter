@@ -1,5 +1,9 @@
 import twilio from 'twilio';
 import axios from 'axios';
+import { conectarDB } from '../db.js';
+import Venta from '../models/Venta.js'; 
+
+
 
 export default async function handler(req, res) {
   try {
@@ -15,7 +19,8 @@ export default async function handler(req, res) {
 
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
-
+    
+    await conectarDB();
     await Venta.create({
       from,
       mensaje: incomingMsg,

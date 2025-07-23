@@ -6,6 +6,7 @@ dotenv.config();
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/herbalis';
 
 export const conectarDB = async () => {
+   if (mongoose.connection.readyState >= 1) return;
   try {
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
