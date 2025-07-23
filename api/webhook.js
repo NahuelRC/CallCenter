@@ -140,9 +140,9 @@ async function obtenerRespuestaAI(mensaje) {
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
       },
-       console.log(mensaje),
-        console.log(respuestaIA),
     );
+    console.log(mensaje);
+    console.log(response.data);
 
     return response.data.choices[0].message.content.trim();
     
