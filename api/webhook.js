@@ -1,7 +1,7 @@
 import twilio from 'twilio';
 import axios from 'axios';
 import { conectarDB } from '../db.js';
-import Venta from 'Ventas.js'; 
+import Ventas from 'Ventas.js'; 
 
 
 
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
     
     await conectarDB();
-    await Venta.create({
+    await Ventas.create({
       from,
       mensaje: incomingMsg,
       respuesta: respuestaIA,

@@ -7,5 +7,5 @@ const ventaSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
-const Venta = mongoose.models.Venta || mongoose.model('Venta', ventaSchema);
-export default Venta;
+const Ventas = mongoose.models.Venta || mongoose.model('Venta', ventaSchema);
+export default Ventas;
