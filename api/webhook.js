@@ -154,7 +154,11 @@ async function obtenerRespuestaAI(mensaje) {
     return response.data.choices[0].message.content.trim();
     
   } catch (err) {
-    console.error('Error al consultar OpenAI:', err.message);
-    return 'Lo siento, estoy teniendo problemas para responderte en este momento.' + err.message;
-  }
+      console.error('🔥 Error en /api/webhook:', {
+    message: error.message,
+    stack: error.stack,
+  });
+  res.status(500).send('Error interno del servidor');
+}
+
 }
