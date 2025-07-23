@@ -1,7 +1,7 @@
 import twilio from 'twilio';
 import axios from 'axios';
 import { conectarDB } from '../db.js';
-import Venta from './Venta.js'; 
+import Venta from 'Ventas.js'; 
 
 
 
