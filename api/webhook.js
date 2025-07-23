@@ -148,6 +148,6 @@ async function obtenerRespuestaAI(mensaje) {
     
   } catch (err) {
     console.error('Error al consultar OpenAI:', err.message);
-    return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
+    return 'Lo siento, estoy teniendo problemas para responderte en este momento.' + err.message;
   }
 }
