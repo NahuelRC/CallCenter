@@ -150,7 +150,7 @@ async function obtenerRespuestaAI(mensaje) {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
+        },timeout: 8000,
       },
     );
     console.log(mensaje);
