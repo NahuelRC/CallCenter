@@ -17,17 +17,23 @@ export default async function handler(req, res) {
 
     console.log('Mensaje recibido:', incomingMsg);
 
+     // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
+    if (!from || !incomingMsg) {
+      console.warn('❌ No se puede guardar: falta "from" o "mensaje"', { from, incomingMsg });
+    }
+
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
     
     await conectarDB();
+    if (from && mensaje) {
     await ventas.create({
       from,
       mensaje: incomingMsg,
       respuesta: respuestaIA,
       timestamp
     });
-
+  }
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
@@ -154,7 +160,7 @@ async function obtenerRespuestaAI(mensaje) {
       },
     );
     console.log(mensaje);
-    console.log(response.data);
+    console.log('✅ OpenAI respondió:', response.data);
 
     return response.data.choices[0].message.content.trim();
     
@@ -162,8 +168,11 @@ async function obtenerRespuestaAI(mensaje) {
       console.error('🔥 Error en /api/webhook:', {
     message: error.message,
     stack: error.stack,
+     
   });
   res.status(500).send('Error interno del servidor');
+  console.error('❌ Error al consultar OpenAI:', err.message);
+  return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
 }
 
 }
