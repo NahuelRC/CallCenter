@@ -52,7 +52,7 @@ export default async function handler(req, res) {
   return ventas.create({
     from,
     mensaje: incomingMsg,
-    respuesta: respuestaIA,
+    //respuesta: respuestaIA,
     timestamp
   });
 }).then(() => {
