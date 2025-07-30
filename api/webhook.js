@@ -17,6 +17,7 @@ export default async function handler(req, res) {
 
     if (req.body?.Payload && req.body?.Level === 'ERROR') {
       console.warn('⚠️ Webhook de error recibido de Twilio. Ignorado.');
+      console.log('este body de Rta', req.body?.Payload)
       return res.status(200).end();
     }
     const incomingMsg = req.body.Body || '';
@@ -37,15 +38,7 @@ export default async function handler(req, res) {
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
     
-    await conectarDB();
-    if (from && incomingMsg) {
-    await ventas.create({
-      from,
-      mensaje: incomingMsg,
-      respuesta: respuestaIA,
-      timestamp
-    });
-  }
+   
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
@@ -54,6 +47,20 @@ export default async function handler(req, res) {
 
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
+
+     conectarDB().then(() => {
+  return ventas.create({
+    from,
+    mensaje: incomingMsg,
+    respuesta: respuestaIA,
+    timestamp
+  });
+}).then(() => {
+  console.log('✅ Conversación guardada correctamente');
+}).catch(err => {
+  console.error('❌ Error al guardar conversación:', err.message);
+});
+
   } catch (error) {
     console.error('Error en /api/webhook:', {
       message: error.message,
