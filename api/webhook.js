@@ -3,7 +3,11 @@ import axios from 'axios';
 import { conectarDB } from '../db.js';
 import ventas from './Ventas.js'; 
 
-
+export const config = {
+  api: {
+    bodyParser: true, // 👈 permite que Vercel use su propio parser
+  },
+};
 
 export default async function handler(req, res) {
   try {
@@ -21,6 +25,7 @@ export default async function handler(req, res) {
      // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
     if (!from || !incomingMsg) {
       console.warn('❌ No se puede guardar: falta "from" o "mensaje"', { from, incomingMsg });
+      return res.status(200).end();
     }
 
     // Pedir respuesta a OpenAI
