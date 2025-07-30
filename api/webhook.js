@@ -15,6 +15,10 @@ export default async function handler(req, res) {
       return res.status(405).send('Method Not Allowed');
     }
 
+    if (req.body?.Payload && req.body?.Level === 'ERROR') {
+      console.warn('⚠️ Webhook de error recibido de Twilio. Ignorado.');
+      return res.status(200).end();
+    }
     const incomingMsg = req.body.Body || '';
     const from = req.body.From || '';
     const timestamp = new Date();
@@ -26,7 +30,9 @@ export default async function handler(req, res) {
     if (!from || !incomingMsg) {
       console.warn('❌ No se puede guardar: falta "from" o "mensaje"', { from, incomingMsg });
       return res.status(200).end();
-    }
+    } 
+
+    const start = Date.now();
 
     // Pedir respuesta a OpenAI
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
@@ -43,10 +49,16 @@ export default async function handler(req, res) {
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
+    const duration = Date.now() - start;
+    console.log(`⏱️ Tiempo de respuesta total: ${duration} ms`);
+
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
   } catch (error) {
-    console.error('Error en /api/webhook:', error.message);
+    console.error('Error en /api/webhook:', {
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).send('Error interno del servidor');
   }
 }
@@ -165,8 +177,7 @@ async function obtenerRespuestaAI(mensaje) {
         },timeout: 8000,
       },
     );
-    console.log(mensaje);
-    console.log('✅ OpenAI respondió:', response.data);
+  
 
     return response.data.choices[0].message.content.trim();
     
