@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     const respuestaIA = await obtenerRespuestaAI(incomingMsg);
     
     await conectarDB();
-    if (from && mensaje) {
+    if (from && incomingMsg) {
     await ventas.create({
       from,
       mensaje: incomingMsg,
@@ -172,7 +172,6 @@ async function obtenerRespuestaAI(mensaje) {
   });
   res.status(500).send('Error interno del servidor');
   console.error('❌ Error al consultar OpenAI:', err.message);
-  console.log('📨 Cuerpo completo recibido:', req.body);
   return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
 }
 
