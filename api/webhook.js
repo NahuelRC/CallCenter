@@ -172,6 +172,7 @@ async function obtenerRespuestaAI(mensaje) {
   });
   res.status(500).send('Error interno del servidor');
   console.error('❌ Error al consultar OpenAI:', err.message);
+  console.log('📨 Cuerpo completo recibido:', req.body);
   return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
 }
 
