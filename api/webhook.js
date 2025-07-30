@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
 
-     conectarDB().then(() => {
+    await conectarDB().then(() => {
   return ventas.create({
     from,
     mensaje: incomingMsg,
