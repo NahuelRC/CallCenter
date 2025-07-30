@@ -16,6 +16,7 @@ export default async function handler(req, res) {
     const timestamp = new Date();
 
     console.log('Mensaje recibido:', incomingMsg);
+    console.log('🧾 req.body completo:', req.body);
 
      // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
     if (!from || !incomingMsg) {
