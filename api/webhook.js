@@ -1,11 +1,11 @@
 import twilio from 'twilio';
 import axios from 'axios';
-import { conectarDB } from '../db.js';
-import ventas from './Ventas.js'; 
+import { conectarDB } from '../lib/db.js';
+import ventas from '../models/Ventas.js'; 
 
 export const config = {
   api: {
-    bodyParser: true, // 👈 permite que Vercel use su propio parser
+    bodyParser: true, 
   },
 };
 
@@ -24,8 +24,8 @@ export default async function handler(req, res) {
     const from = req.body.From || '';
     const timestamp = new Date();
 
-    console.log('Mensaje recibido:', incomingMsg);
-    console.log('🧾 req.body completo:', req.body);
+    //console.log('Mensaje recibido:', incomingMsg);
+    //console.log('🧾 req.body completo:', req.body);
 
      // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
     if (!from || !incomingMsg) {
