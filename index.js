@@ -15,19 +15,20 @@ app.use(express.urlencoded({ extended: false }));
 // Por si lo mandás como JSON también
 app.use(express.json());
 
+const PORT = process.env.PORT || 3000;
+await conectarDB()
+
 app.post('/webhook', webhook);
 app.use('/api/prompts', promptsRouter);
 
 
-const PORT = process.env.PORT || 3000;
-await conectarDB()
+  app.get('/', (req, res) => {
+  res.send('✅ Backend funcionando en Railway');
+});
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor en http://localhost:${PORT}`);
   console.log('✅ /api/prompts montado');
-});
-
-  app.get('/', (req, res) => {
-  res.send('✅ Backend funcionando en Railway');
 });
 
