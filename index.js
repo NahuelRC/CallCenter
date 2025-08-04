@@ -25,9 +25,9 @@ await conectarDB()
 app.listen(PORT, () => {
   console.log(`🚀 Servidor en http://localhost:${PORT}`);
   console.log('✅ /api/prompts montado');
+});
 
   app.get('/', (req, res) => {
   res.send('✅ Backend funcionando en Railway');
 });
 
-});
