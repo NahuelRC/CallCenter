@@ -1,10 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import webhook from './api/webhook.js';
-import conversationsRouter from './api/conversations.js';
-import sendManualRouter from './api/sendManual.js'
-import { conectarDB } from './db.js';
-
+//import conversationsRouter from './api/conversations.js';
+//import sendManualRouter from './api/sendManual.js'
+import { conectarDB } from './lib/db.js';
+import promptsRouter from './api/prompts.js'
 
 dotenv.config();
 
@@ -16,8 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.post('/webhook', webhook);
-app.use('/sendManual', sendManualRouter);
-app.use('/conversations', conversationsRouter);
+app.use('/api/prompts', promptsRouter);
 
 
 const PORT = process.env.PORT || 3000;
@@ -25,4 +24,5 @@ await conectarDB()
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor en http://localhost:${PORT}`);
+  console.log('✅ /api/prompts montado');
 });

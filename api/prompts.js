@@ -1,47 +1,44 @@
 // api/prompts.js
-import Prompt from './models/Prompt.js';
+import express from 'express';
+import Prompt from '../models/Prompt.js';
 import { conectarDB } from '../lib/db.js';
 
-export const config = {
-  api: { bodyParser: true },
-};
+const router = express.Router();
+await conectarDB(); // conexión única al iniciar
 
-export default async function handler(req, res) {
-  await conectarDB();
-
-  const { method } = req;
-
-  switch (method) {
-    case 'GET':
-      try {
-        const prompts = await Prompt.find().sort({ timestamp: -1 });
-        return res.status(200).json(prompts);
-      } catch (error) {
-        return res.status(500).json({ error: 'Error al obtener prompts' });
-      }
-
-    case 'POST':
-      try {
-        const { nombre, content } = req.body;
-        if (!content) return res.status(400).json({ error: 'Falta el contenido del prompt' });
-        const nuevoPrompt = await Prompt.create({ nombre, content });
-        return res.status(201).json(nuevoPrompt);
-      } catch (error) {
-        return res.status(500).json({ error: 'Error al guardar el prompt' });
-      }
-
-    case 'PUT':
-      try {
-        const { id } = req.query;
-        const { content } = req.body;
-        if (!id || !content) return res.status(400).json({ error: 'Faltan datos' });
-        const actualizado = await Prompt.findByIdAndUpdate(id, { content }, { new: true });
-        return res.status(200).json(actualizado);
-      } catch (error) {
-        return res.status(500).json({ error: 'Error al actualizar el prompt' });
-      }
-
-    default:
-      return res.status(405).end(`Método ${method} no permitido`);
+// GET: Obtener todos los prompts
+router.get('/', async (req, res) => {
+  try {
+    const prompts = await Prompt.find().sort({ timestamp: -1 });
+    res.status(200).json(prompts);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener prompts' });
   }
-}
+});
+
+// POST: Crear nuevo prompt
+router.post('/', async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: 'Falta el contenido del prompt' });
+    const nuevoPrompt = await Prompt.create({ content });
+    res.status(201).json(nuevoPrompt);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al guardar el prompt' });
+  }
+});
+
+// PUT: Actualizar prompt por ID
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    if (!id || !content) return res.status(400).json({ error: 'Faltan datos' });
+    const actualizado = await Prompt.findByIdAndUpdate(id, { content }, { new: true });
+    res.status(200).json(actualizado);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar el prompt' });
+  }
+});
+
+export default router;
