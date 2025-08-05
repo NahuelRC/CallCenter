@@ -1,7 +1,14 @@
 // api/prompts.js
 import express from 'express';
 import Prompt from '../models/Prompt.js';
+import { initPromptCache } from './lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
+
+// Dentro de main():
+await conectarDB();
+await initPromptCache(); // <<<<< AGREGADO
+
+
 
 const router = express.Router();
 //await conectarDB(); // conexión única al iniciar

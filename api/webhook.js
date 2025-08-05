@@ -2,12 +2,18 @@ import twilio from 'twilio';
 import axios from 'axios';
 import { conectarDB } from '../lib/db.js';
 import ventas from '../models/Ventas.js'; 
+import { getPrompt } from '../lib/promptCache.js';
 
 export const config = {
   api: {
     bodyParser: true, 
   },
 };
+
+// Dentro del handler del mensaje entrante:
+const promptBase = getPrompt(); // <<<<<< USAMOS EL CACHÉ
+const promptFinal = `${promptBase}\nUsuario: ${mensaje}`;
+
 
 export default async function handler(req, res) {
   try {
@@ -26,6 +32,7 @@ export default async function handler(req, res) {
 
     //console.log('Mensaje recibido:', incomingMsg);
     //console.log('🧾 req.body completo:', req.body);
+    
 
      // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
     if (!from || !incomingMsg) {
@@ -57,6 +64,7 @@ export default async function handler(req, res) {
   });
 }).then(() => {
   console.log('✅ Conversación guardada correctamente');
+  console.log (promptFinal)
 }).catch(err => {
   console.error('❌ Error al guardar conversación:', err.message);
 });
