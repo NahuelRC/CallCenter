@@ -1,7 +1,7 @@
 import twilio from 'twilio';
 import axios from 'axios';
-import { conectarDB } from '../lib/db.js';
 import ventas from '../models/Ventas.js'; 
+import { conectarDB } from '../lib/db.js';
 import { getPrompt } from '../lib/promptCache.js';
 
 export const config = {
