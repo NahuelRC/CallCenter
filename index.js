@@ -28,7 +28,7 @@ app.use('/api/prompts', promptsRouter);
 
 
 app.listen(PORT,'0.0.0.0',  () => {
-  console.log(`🚀 Servidor en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en el puerto:${PORT}`);
   console.log('✅ /api/prompts montado');
 });
 
