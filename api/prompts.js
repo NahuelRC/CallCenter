@@ -4,7 +4,7 @@ import Prompt from '../models/Prompt.js';
 import { conectarDB } from '../lib/db.js';
 
 const router = express.Router();
-await conectarDB(); // conexión única al iniciar
+//await conectarDB(); // conexión única al iniciar
 
 // GET: Obtener todos los prompts
 router.get('/', async (req, res) => {
