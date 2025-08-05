@@ -21,10 +21,10 @@ await conectarDB()
 app.post('/webhook', webhook);
 app.use('/api/prompts', promptsRouter);
 
-
+/*
   app.get('/', (req, res) => {
   res.send('✅ Backend funcionando en Railway');
-});
+});*/
 
 
 app.listen(PORT, () => {
