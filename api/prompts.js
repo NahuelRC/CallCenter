@@ -1,7 +1,7 @@
 // api/prompts.js
 import express from 'express';
 import Prompt from '../models/Prompt.js';
-import { initPromptCache } from './lib/promptCache.js';
+import { initPromptCache } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
 
 // Dentro de main():

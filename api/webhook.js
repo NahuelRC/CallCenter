@@ -10,9 +10,6 @@ export const config = {
   },
 };
 
-// Dentro del handler del mensaje entrante:
-const promptBase = getPrompt(); // <<<<<< USAMOS EL CACHÉ
-const promptFinal = `${promptBase}\nUsuario: ${mensaje}`;
 
 
 export default async function handler(req, res) {
@@ -29,10 +26,14 @@ export default async function handler(req, res) {
     const incomingMsg = req.body.Body || '';
     const from = req.body.From || '';
     const timestamp = new Date();
+    const promptBase = getPrompt(); // <<<<<< USAMOS EL CACHÉ
+    const promptFinal = `${promptBase}\nUsuario: ${mensaje}`;
 
-    //console.log('Mensaje recibido:', incomingMsg);
+
+    console.log('Mensaje recibido:', promptFinal);
     //console.log('🧾 req.body completo:', req.body);
-    
+    // Dentro del handler del mensaje entrante:
+
 
      // ✅ PREVENIMOS GUARDAR SI FALTAN CAMPOS OBLIGATORIOS
     if (!from || !incomingMsg) {
