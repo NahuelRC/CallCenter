@@ -52,7 +52,7 @@ const webhook = async (req, res) => {
 async function obtenerRespuestaAI(promptFinal) {
   try {
     const response = await axios.post(
-      console.log('📤 Enviando prompt a OpenAI:', promptFinal);
+     // console.log('📤 Enviando prompt a OpenAI:', promptFinal);
       'https://api.openai.com/v1/chat/completions',
       {
         model: 'gpt-3.5-turbo',
@@ -70,6 +70,7 @@ async function obtenerRespuestaAI(promptFinal) {
       }
     );
     return response.data.choices[0].message.content.trim();
+    console.log('📤 Enviando prompt a OpenAI:', promptFinal);
   } catch (err) {
     console.error('❌ Error al consultar OpenAI:', err.message);
     return 'Lo siento, estoy teniendo problemas para responderte en este momento.';
