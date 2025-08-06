@@ -1,7 +1,7 @@
 // api/webhook.js
 import twilio from 'twilio';
 import axios from 'axios';
-import ventas from '../models/Ventas.js'; 
+import ventas from '../models/Ventas.js';
 import { getPrompt } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
 
@@ -29,20 +29,16 @@ const webhook = async (req, res) => {
     const promptFinal = `${promptBase}\nUsuario: ${incomingMsg}`;
     console.log('🧠 Prompt usado:', promptFinal);
 
-    const respuestaIA = await obtenerRespuestaAI(incomingMsg);
+    const respuestaIA = await obtenerRespuestaAI(promptFinal);
 
     const twiml = new twilio.twiml.MessagingResponse();
     twiml.message(respuestaIA);
 
-    res.set('Content-Type', 'text/xml');
-    res.status(200).send(twiml.toString());
+    res.writeHead(200, { 'Content-Type': 'text/xml' });
+    res.end(twiml.toString());
 
     await conectarDB();
-    await ventas.create({
-      from,
-      mensaje: incomingMsg,
-      timestamp,
-    });
+    await ventas.create({ from, mensaje: incomingMsg, timestamp });
 
     console.log('✅ Conversación guardada correctamente');
   } catch (error) {
@@ -53,15 +49,15 @@ const webhook = async (req, res) => {
   }
 };
 
-async function obtenerRespuestaAI(mensaje) {
+async function obtenerRespuestaAI(promptFinal) {
   try {
     const response = await axios.post(
+      console.log('📤 Enviando prompt a OpenAI:', promptFinal);
       'https://api.openai.com/v1/chat/completions',
       {
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: getPrompt() },
-          { role: 'user', content: mensaje },
+          { role: 'system', content: promptFinal },
         ],
         temperature: 0.6,
       },
@@ -70,7 +66,7 @@ async function obtenerRespuestaAI(mensaje) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
-        timeout: 8000,
+        timeout: 15000,
       }
     );
     return response.data.choices[0].message.content.trim();

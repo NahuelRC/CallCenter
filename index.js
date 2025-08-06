@@ -23,7 +23,7 @@ const main = async () => {
   app.use('/api/prompt-activo', promptActivoRouter);
 
   app.get('/', (req, res) => {
-    res.send('✅ Backend funcionando en Railway');
+    res.send('✅ Backend funcionando en Render');
   });
 
   app.listen(PORT, '0.0.0.0', () => {
