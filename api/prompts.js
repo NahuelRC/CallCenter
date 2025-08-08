@@ -53,4 +53,29 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+router.patch('/activar/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) return res.status(400).json({ error: 'Falta el ID del prompt a activar' });
+
+    // Verificamos que exista
+    const promptExistente = await Prompt.findById(id);
+    if (!promptExistente) {
+      return res.status(404).json({ error: 'Prompt no encontrado' });
+    }
+
+    // Desactivamos todos
+    await Prompt.updateMany({}, { activo: false });
+
+    // Activamos el solicitado
+    const promptActivado = await Prompt.findByIdAndUpdate(id, { activo: true }, { new: true });
+
+    res.status(200).json({ message: 'Prompt activado correctamente', prompt: promptActivado });
+  } catch (error) {
+    console.error('❌ Error al activar el prompt:', error.message);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 export default router;
