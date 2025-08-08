@@ -1,7 +1,7 @@
 // api/prompts.js
 import express from 'express';
 import Prompt from '../models/Prompt.js';
-import { initPromptCache } from '../lib/promptCache.js';
+import { initPromptCache, cargarPromptDesdeDB } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
 
 // Dentro de main():
@@ -71,7 +71,7 @@ router.patch('/activar/:id', async (req, res) => {
     // Activamos el solicitado
     const promptActivado = await Prompt.findByIdAndUpdate(id, { activo: true }, { new: true });
 
-    await cargarPromptDesdeDB(); // 👈 refresca cache NOW
+    await cargarPromptDesdeDB(); //  refresca cache NOW
 
     res.status(200).json({ message: 'Prompt activado correctamente', prompt: promptActivado });
   } catch (error) {
