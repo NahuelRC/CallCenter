@@ -26,9 +26,12 @@ router.get('/', async (req, res) => {
 // POST: Crear nuevo prompt
 router.post('/', async (req, res) => {
   try {
-    const { content } = req.body;
+    const { nombre, content, activo } = req.body;
     if (!content) return res.status(400).json({ error: 'Falta el contenido del prompt' });
-    const nuevoPrompt = await Prompt.create({ content });
+    const nuevoPrompt = await Prompt.create({  
+      nombre,
+      content,
+      activo: !!activo });
     res.status(201).json(nuevoPrompt);
   } catch (error) {
     res.status(500).json({ error: 'Error al guardar el prompt' });
@@ -39,9 +42,11 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const {  nombre, content, activo } = req.body;
     if (!id || !content) return res.status(400).json({ error: 'Faltan datos' });
-    const actualizado = await Prompt.findByIdAndUpdate(id, { content }, { new: true });
+    const actualizado = await Prompt.findByIdAndUpdate(id,{ ...(nombre && { nombre }), ...(content && { content }), ...(typeof activo !== 'undefined' && { activo }) },
+      { new: true });
+    if (!actualizado) return res.status(404).json({ error: 'Prompt no encontrado' });
     res.status(200).json(actualizado);
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar el prompt' });
