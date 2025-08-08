@@ -71,6 +71,8 @@ router.patch('/activar/:id', async (req, res) => {
     // Activamos el solicitado
     const promptActivado = await Prompt.findByIdAndUpdate(id, { activo: true }, { new: true });
 
+    await cargarPromptDesdeDB(); // 👈 refresca cache NOW
+
     res.status(200).json({ message: 'Prompt activado correctamente', prompt: promptActivado });
   } catch (error) {
     console.error('❌ Error al activar el prompt:', error.message);
