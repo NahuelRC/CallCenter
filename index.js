@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import webhook from './api/webhook.js';
 import promptsRouter from './api/prompts.js';
 import promptActivoRouter from './api/prompt-activo.js';
+import cors from 'cors';
 import { conectarDB } from './lib/db.js';
 
 dotenv.config();
@@ -17,6 +18,12 @@ const main = async () => {
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+
+  app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://TU-FE.vercel.app'],
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
   
   app.post('/webhook', webhook);
   app.use('/api/prompts', promptsRouter);
