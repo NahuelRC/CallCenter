@@ -5,6 +5,7 @@ import promptsRouter from './api/prompts.js';
 import promptActivoRouter from './api/prompt-activo.js';
 import cors from 'cors';
 import contactsRouter from './api/contacts.js';
+import twilioRouter from './api/twilio.js';
 import { conectarDB } from './lib/db.js';
 
 dotenv.config();
@@ -20,6 +21,7 @@ const main = async () => {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
   app.use('/api/contacts', contactsRouter);
+  app.use('/api/twilio', twilioRouter);
   app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:5173', 'https://TU-FE.vercel.app'],
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
