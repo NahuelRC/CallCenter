@@ -18,12 +18,25 @@ const main = async () => {
 
   const app = express();
 
+  const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://192.168.1.4:3000',
+  // agrega tu FE de producción si existe:
+  // 'https://tu-frontend.com'
+];
+
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
   app.use('/api/contacts', contactsRouter);
   app.use('/api/twilio', twilioRouter);
-  app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://TU-FE.vercel.app'],
+ app.use(cors({
+  origin(origin, cb) {
+    // permitir llamadas sin Origin (p.ej. curl, Postman)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS bloqueado para origen: ${origin}`));
+  },
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
