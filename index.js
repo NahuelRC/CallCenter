@@ -40,6 +40,8 @@ const main = async () => {
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
+
+  app.options('*', cors());
   
   app.post('/webhook', webhook);
   app.use('/api/prompts', promptsRouter);
