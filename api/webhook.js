@@ -1,7 +1,7 @@
 // api/webhook.js
 import twilio from 'twilio';
 import axios from 'axios';
-import mensajes from '../models/mensajes.js';
+import mensajes from '../models/Mensajes.js';
 import { getPrompt } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
 
