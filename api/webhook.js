@@ -1,7 +1,7 @@
 // api/webhook.js
 import twilio from 'twilio';
 import axios from 'axios';
-import ventas from '../models/Ventas.js';
+import mensajes from '../models/mensajes.js';
 import { getPrompt } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
 
@@ -38,7 +38,7 @@ const webhook = async (req, res) => {
     res.end(twiml.toString());
 
     await conectarDB();
-    await ventas.create({ from, mensaje: incomingMsg, timestamp });
+    await mensajes.create({ from, mensaje: incomingMsg, timestamp });
 
     console.log('✅ Conversación guardada correctamente');
   } catch (error) {
