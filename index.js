@@ -14,20 +14,23 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 
+  // --- CORS PRIMERO ---
+  const allowedOrigins = [
+    process.env.FRONTEND_ORIGIN || 
+    'https://call-center-fe-six.vercel.app/',
+/*    'https://callcenter-z98c.onrender.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.1.4:3000',*/
+  ];
+
+
 const main = async () => {
   console.log('🟡 Iniciando main()...');
   await conectarDB();
 
   const app = express();
 
-  // --- CORS PRIMERO ---
-  const allowedOrigins = [
-    process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://192.168.1.4:3000',
-    'https://call-center-fe-six.vercel.app/',
-    'https://callcenter-z98c.onrender.com',
-  ];
 
   // headers y preflight global
   app.use((req, res, next) => {
