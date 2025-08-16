@@ -104,4 +104,26 @@ router.post('/send', async (req, res) => {
   }
 });
 
+// PATCH /api/contacts/agent-by-phone   body: { phone: "+549...", enabled: boolean }
+router.patch('/agent-by-phone', async (req, res) => {
+  try {
+    const { phone, enabled } = req.body || {};
+    if (!phone) return res.status(400).json({ error: 'Falta phone' });
+    if (typeof enabled === 'undefined') return res.status(400).json({ error: 'Falta enabled (boolean)' });
+
+    const phoneE164 = phone.startsWith('whatsapp:') ? phone.replace('whatsapp:', '') : phone;
+    if (!assertE164(phoneE164)) return res.status(400).json({ error: 'phone debe ser E.164 (ej: +549...)' });
+
+    const updated = await Contact.findOneAndUpdate(
+      { phone: phoneE164 },
+      { $set: { agentEnabled: !!enabled } },
+      { upsert: true, new: true }
+    );
+    return res.json({ ok: true, phone: updated.phone, agentEnabled: updated.agentEnabled });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
 export default router;
