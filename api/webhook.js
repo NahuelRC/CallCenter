@@ -1,7 +1,7 @@
 // api/webhook.js
 import twilio from 'twilio';
 import axios from 'axios';
-import Mensaje from '../models/Mensaje.js';        // ← AJUSTA ESTE PATH/CASE SI TU ARCHIVO ES "Mensajes.js"
+import Mensaje from '../models/Mensajes.js';        // ← AJUSTA ESTE PATH/CASE SI TU ARCHIVO ES "Mensajes.js"
 import Contact from '../models/Contact.js';
 import { getPrompt } from '../lib/promptCache.js';
 import { conectarDB } from '../lib/db.js';
