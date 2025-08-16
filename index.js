@@ -8,6 +8,7 @@ import promptsRouter from './api/prompts.js';
 import promptActivoRouter from './api/prompt-activo.js';
 import contactsRouter from './api/contacts.js';
 import twilioRouter from './api/twilio.js';
+import conversationsRouter from './api/conversations.js';
 import { conectarDB } from './lib/db.js';
 
 dotenv.config();
@@ -18,10 +19,6 @@ const PORT = process.env.PORT || 8080;
   const allowedOrigins = [
     process.env.FRONTEND_ORIGIN || 
     'https://call-center-fe-six.vercel.app/',
-/*    'https://callcenter-z98c.onrender.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://192.168.1.4:3000',*/
   ];
 
 
@@ -62,6 +59,7 @@ const main = async () => {
   app.use(express.json());
 
   // rutas
+  app.use('/api/conversations', conversationsRouter);
   app.use('/api/contacts', contactsRouter);
   app.use('/api/twilio', twilioRouter);
   app.post('/webhook', webhook);

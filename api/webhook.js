@@ -20,6 +20,22 @@ const webhook = async (req, res) => {
     const from = req.body.From || '';
     const timestamp = new Date();
 
+    
+    // upsert contacto y leer flag
+    const contact = await Contact.findOneAndUpdate(
+      { phone: phoneE164 },
+      { $setOnInsert: { createdAt: new Date() }, $set: { lastInboundAt: new Date() } },
+      { upsert: true, new: true }
+    );
+
+    // ⬅️ Si el agente está desactivado para ESTE teléfono, no respondemos
+    if (!contact.agentEnabled || contact.status === 'blocked') {
+      console.log(`🔕 Agente deshabilitado para ${phoneE164}. No se responde.`);
+      const twiml = new twilio.twiml.MessagingResponse();
+      res.set('Content-Type', 'text/xml');
+      return res.status(200).send(twiml.toString()); // <Response/>
+    }
+
     if (!from || !incomingMsg) {
       console.warn('❌ Faltan datos obligatorios:', { from, incomingMsg });
       return res.status(200).end();
