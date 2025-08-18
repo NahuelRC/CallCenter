@@ -15,19 +15,31 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 
-  // --- CORS PRIMERO ---
-  const allowedOrigins = [
-    process.env.FRONTEND_ORIGIN || 
-    'https://call-center-fe-six.vercel.app/',
-  ];
-
 
 const main = async () => {
   console.log('🟡 Iniciando main()...');
   await conectarDB();
 
   const app = express();
+  // --- CORS PRIMERO ---
+  const allowedOrigins = [
+    process.env.FRONTEND_ORIGIN || 
+    'https://call-center-fe-six.vercel.app/',
+  ];
 
+  const corsOptions = {
+    origin(origin, cb) {
+      if (!origin) return cb(null, true);                // curl/Postman
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error(`CORS bloqueado para origen: ${origin}`));
+    },
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization'],
+    credentials: false, // si no usás cookies
+  };
+  
+   app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions)); // preflight para PUT/PATCH/DELETE
 
   // headers y preflight global
   app.use((req, res, next) => {
@@ -42,17 +54,7 @@ const main = async () => {
     next();
   });
 
-  // (opcional) paquete cors por si querés delegar
-  app.use(cors({
-    origin(origin, cb) {
-      if (!origin) return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS bloqueado para origen: ${origin}`));
-    },
-    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization'],
-  }));
-  // --- FIN CORS ---
+
 
   // parsers
   app.use(express.urlencoded({ extended: false }));
