@@ -24,7 +24,7 @@ const main = async () => {
   // --- CORS PRIMERO ---
   const allowedOrigins = [
     process.env.FRONTEND_ORIGIN || 
-    'https://call-center-fe-six.vercel.app/',
+    'https://call-center-fe-six.vercel.app',
   ];
 
   const corsOptions = {
