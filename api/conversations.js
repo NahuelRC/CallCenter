@@ -1,19 +1,15 @@
 // api/conversations.js
 import express from 'express';
 import Mensaje from '../models/Mensajes.js';
-import Contact from '../models/Contact.js'; // ya lo tenés
+import Contact from '../models/Contact.js';
+import Conversation from '../models/Conversation.js'; // <-- NUEVO
 import { assertE164, toWhatsApp } from '../lib/phone.js';
 
 const router = express.Router();
 
 /**
  * GET /api/conversations
- * Lista conversaciones agregadas por "from" (whatsapp:+E164), normalizando a "phone" (+E164).
- * Query:
- *  - search?: string    (busca por teléfono parcial o exacto)
- *  - limit?: number     (default 50, máx 200)
- *  - offset?: number    (default 0)
- * Retorna: [{ phone, from, status, conversationsCount, lastActivityAt }]
+ * (SIN CAMBIOS)
  */
 router.get('/', async (req, res) => {
   try {
@@ -21,13 +17,12 @@ router.get('/', async (req, res) => {
     const lim = Math.min(parseInt(limit, 10) || 50, 200);
     const skip = parseInt(offset, 10) || 0;
 
-    // Normalizamos en pipeline un campo "phone" = from sin "whatsapp:"
     const pipeline = [
       { $addFields: {
           phone: {
             $cond: [
               { $regexMatch: { input: '$from', regex: /^whatsapp:\+/ } },
-              { $substr: ['$from', 9, -1] }, // quita 'whatsapp:' (9 chars)
+              { $substr: ['$from', 9, -1] },
               '$from'
             ]
           }
@@ -35,10 +30,8 @@ router.get('/', async (req, res) => {
       }
     ];
 
-    // Filtro por búsqueda (si mandan "+549..." o parcial)
     if (search) {
       const s = String(search).trim();
-      // busca por phone (E.164) o from
       pipeline.push({
         $match: {
           $or: [
@@ -49,7 +42,6 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Agrupar por "from"
     pipeline.push(
       {
         $group: {
@@ -62,7 +54,6 @@ router.get('/', async (req, res) => {
       { $sort: { lastActivityAt: -1 } },
       { $skip: skip },
       { $limit: lim },
-      // Join con contacts (si existe) por phone (+E164)
       {
         $lookup: {
           from: 'contacts',
@@ -81,9 +72,9 @@ router.get('/', async (req, res) => {
       {
         $project: {
           _id: 0,
-          from: '$_id',            // ej: whatsapp:+549...
-          phone: 1,                // ej: +549...
-          status: 1,               // active | blocked | ...
+          from: '$_id',
+          phone: 1,
+          status: 1,
           conversationsCount: 1,
           lastActivityAt: 1
         }
@@ -100,52 +91,91 @@ router.get('/', async (req, res) => {
 
 /**
  * GET /api/conversations/:phone/messages
- * Historial de mensajes por número E.164 (ej: +549341XXXXXX)
+ * (ACTUALIZADO) Fuente principal: Conversation.messages
+ * Fallback: Mensajes (legacy)
  * Query:
- *  - limit?: number (default 50)
- *  - before?: ISO date
- *  - after?: ISO date
+ *  - limit?: number (default 50, máx 500)
+ *  - before?: ISO date (filtra createdAt/timestamp < before)
+ *  - after?:  ISO date (filtra createdAt/timestamp > after)
+ * Respuesta:
+ *  { ok: true, messages: [ { role, source, body, media[], messageSid, lastStatus, createdAt, _id } ] }
  */
 router.get('/:phone/messages', async (req, res) => {
   try {
     const raw = decodeURIComponent(req.params.phone || '');
     const phone = raw.startsWith('+') ? raw : `+${raw.replace(/^\+/, '')}`;
     if (!assertE164(phone)) {
-      return res.status(400).json({ error: 'Parámetro phone debe ser E.164, ej: +549...' });
+      return res.status(400).json({ ok: false, error: 'Parámetro phone debe ser E.164, ej: +549...' });
     }
 
-    const from = toWhatsApp(phone); // whatsapp:+549...
     const { limit = '50', before, after } = req.query;
     const lim = Math.min(parseInt(limit, 10) || 50, 500);
 
-    const match = { from };
-    if (before) match.timestamp = { ...(match.timestamp || {}), $lt: new Date(before) };
-    if (after)  match.timestamp = { ...(match.timestamp || {}), $gt: new Date(after) };
+    // ---- 1) Intentar nueva fuente: Conversation ----
+    const convo = await Conversation.findOne({ phone }).lean();
 
-    const docs = await Mensaje.find(match)
-      .sort({ timestamp: -1 })
+    if (convo && Array.isArray(convo.messages)) {
+      const beforeDate = before ? new Date(String(before)) : null;
+      const afterDate  = after  ? new Date(String(after))  : null;
+
+      let msgs = convo.messages;
+
+      if (beforeDate) msgs = msgs.filter(m => m.createdAt && new Date(m.createdAt) < beforeDate);
+      if (afterDate)  msgs = msgs.filter(m => m.createdAt && new Date(m.createdAt) > afterDate);
+
+      // Orden cronológico ASC y limitar a últimos N
+      msgs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      if (msgs.length > lim) msgs = msgs.slice(-lim);
+
+      const out = msgs.map(m => ({
+        _id: String(m._id || ''),
+        role: m.role,                              // "user" | "agent"
+        source: m.source || null,                  // "twilio" | "bot" | "human"
+        body: m.body ?? null,
+        media: (m.media || []).map(mm => ({
+          url: mm.url,
+          contentType: mm.contentType || null
+        })),
+        messageSid: m.messageSid || null,
+        lastStatus: m.lastStatus || null,
+        createdAt: m.createdAt || convo.updatedAt || new Date().toISOString()
+      }));
+
+      return res.json({ ok: true, messages: out });
+    }
+
+    // ---- 2) Fallback: Mensajes (legacy, solo inbound) ----
+    const from = toWhatsApp(phone); // "whatsapp:+549..."
+    const legacyMatch = { from };
+    if (before) legacyMatch.timestamp = { ...(legacyMatch.timestamp || {}), $lt: new Date(String(before)) };
+    if (after)  legacyMatch.timestamp = { ...(legacyMatch.timestamp || {}), $gt: new Date(String(after))  };
+
+    const docs = await Mensaje.find(legacyMatch)
+      .sort({ timestamp: 1 }) // ascendente para lectura natural
       .limit(lim)
       .lean();
 
-    // Opcional: mapear a un formato UI más directo
-    const items = docs.map(d => ({
-      id: String(d._id),
-      from: d.from,                // whatsapp:+...
-      phone,                       // +...
+    const legacyOut = docs.map(d => ({
+      _id: String(d._id),
+      role: 'user',
+      source: 'twilio',
       body: d.mensaje,
-      timestamp: d.timestamp
+      media: [],
+      messageSid: null,
+      lastStatus: null,
+      createdAt: d.timestamp
     }));
 
-    res.json(items);
+    return res.json({ ok: true, messages: legacyOut });
   } catch (e) {
     console.error('GET /api/conversations/:phone/messages error:', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ ok: false, error: e.message });
   }
 });
 
 /**
  * PATCH /api/conversations/:phone/deactivate
- * Desactiva al agente para ese teléfono (Contact.status = 'blocked')
+ * (SIN CAMBIOS)
  */
 router.patch('/:phone/deactivate', async (req, res) => {
   try {
@@ -169,7 +199,7 @@ router.patch('/:phone/deactivate', async (req, res) => {
 
 /**
  * PATCH /api/conversations/:phone/activate
- * Reactiva al agente para ese teléfono (Contact.status = 'active')
+ * (SIN CAMBIOS)
  */
 router.patch('/:phone/activate', async (req, res) => {
   try {
