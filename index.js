@@ -9,6 +9,9 @@ import promptActivoRouter from './api/prompt-activo.js';
 import contactsRouter from './api/contacts.js';
 import twilioRouter from './api/twilio.js';
 import conversationsRouter from './api/conversations.js';
+import productsRouter from "./api/products.js";
+import promotionsRouter from "./api/promotions.js";
+import catalogRouter from "./api/catalog.js";
 import { conectarDB } from './lib/db.js';
 
 dotenv.config();
@@ -67,6 +70,9 @@ const main = async () => {
   app.post('/webhook', webhook);
   app.use('/api/prompts', promptsRouter);
   app.use('/api/prompt-activo', promptActivoRouter);
+  app.use("/api/products", productsRouter);
+  app.use("/api/promotions", promotionsRouter);
+  app.use("/api/catalog", catalogRouter);
 
   app.get('/', (_req, res) => res.send('✅ Backend funcionando en Render'));
 
