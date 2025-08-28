@@ -20,7 +20,8 @@ const ProductSchema = new mongoose.Schema(
   { collection: "Products" }
 );
 
-ProductSchema.index({ name: "text", sku: "text", tags: 1 });
+// /models/Product.js
+ProductSchema.index({ name: "text", sku: "text", tags: "text" }); // ✅
 
 ProductSchema.pre("save", function(next) {
   this.updatedAt = new Date();
