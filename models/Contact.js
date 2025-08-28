@@ -15,7 +15,7 @@ const ContactSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 }, { collection: 'contacts' });
 
-ContactSchema.index({ phone: 1 }, { unique: true });
+ContactSchema.index({ phone: 1 });
 
 const Contact = mongoose.models.Contact || mongoose.model('Contact', ContactSchema);
 export default Contact;

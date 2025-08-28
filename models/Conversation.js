@@ -32,7 +32,7 @@ const MessageItemSchema = new mongoose.Schema(
 const ConversationSchema = new mongoose.Schema(
   {
     // Teléfono en E.164 SIN el prefijo "whatsapp:"
-    phone: { type: String, unique: true, index: true, required: true },
+    phone: { type: String, unique: true, required: true },
 
     // Link al contacto si existe
     contactId: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
