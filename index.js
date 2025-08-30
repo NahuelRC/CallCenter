@@ -2,7 +2,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import uploadsRouter from "./api/uploads.js";
 import webhook from './api/webhook.js';
 import promptsRouter from './api/prompts.js';
 import promptActivoRouter from './api/prompt-activo.js';
@@ -73,6 +73,7 @@ const main = async () => {
   app.use("/api/products", productsRouter);
   app.use("/api/promotions", promotionsRouter);
   app.use("/api/catalog", catalogRouter);
+  app.use("/api/uploads", uploadsRouter);
 
   app.get('/', (_req, res) => res.send('✅ Backend funcionando en Render'));
 

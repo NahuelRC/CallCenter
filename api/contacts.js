@@ -3,7 +3,7 @@ import express from 'express';
 import Contact from '../models/Contact.js';
 import { getTwilio } from '../lib/twilioClient.js';
 import { toWhatsApp, assertE164 } from '../lib/phone.js';
-
+import { appendConversationMessage } from '../lib/conversationService.js';
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
 
     const updated = await Contact.findOneAndUpdate(
       { phone },
-      { $set, ...(tags ? { $addToSet: { tags: { $each: tags } } } : {}) },
+      { $set, ...(Array.isArray(tags) && tags.length ? { $addToSet: { tags: { $each: tags } } } : {}) },
       { upsert: true, new: true }
     );
     return res.json(updated);
@@ -103,61 +103,159 @@ router.patch('/agent/by-phone', async (req, res) => {
 
 /**
  * POST /api/contacts/:id/send
- * body: { body: string }
+ * body: { body?: string, mediaUrls?: string[] }
+ * ➜ Extendido para soportar envío de imágenes y guardado en Conversation
  */
 router.post('/:id/send', async (req, res) => {
   try {
     const { id } = req.params;
-    const { body } = req.body || {};
-    if (!body) return res.status(400).json({ error: 'Falta body' });
+    const { body, mediaUrls } = req.body || {};
+    if (!body && (!Array.isArray(mediaUrls) || mediaUrls.length === 0)) {
+      return res.status(400).json({ error: 'Falta body o mediaUrls' });
+    }
 
     const contact = await Contact.findById(id);
     if (!contact) return res.status(404).json({ error: 'Contacto no encontrado' });
 
+    // Guard de mute/bloqueo
+    if (contact.status === 'blocked' || contact.agentEnabled === false) {
+      return res.status(403).json({ ok: false, error: 'Contacto bloqueado/muteado' });
+    }
+
     const { client, from } = await getTwilio();
-    const msg = await client.messages.create({
+    const payload = {
       from,
       to: toWhatsApp(contact.phone),
-      body
-    });
+    };
+    if (body) payload.body = body;
+    if (Array.isArray(mediaUrls) && mediaUrls.length > 0) {
+      payload.mediaUrl = mediaUrls;
+    }
+
+    const msg = await client.messages.create(payload);
+
+    // Persistimos outbound del agente (humano)
+    try {
+      await appendConversationMessage({
+        phone: contact.phone,
+        role: 'agent',
+        source: 'human',
+        body: body || null,
+        media: Array.isArray(mediaUrls) ? mediaUrls : [],
+        messageSid: msg.sid,
+        lastStatus: 'queued',
+        statusHistory: [{ status: 'queued', at: new Date() }]
+      });
+    } catch (e) {
+      // no rompemos el flujo si falla el guardado
+      console.warn('appendConversationMessage fallo (/:id/send):', e.message);
+    }
 
     contact.lastOutboundAt = new Date();
     await contact.save();
 
     return res.json({ ok: true, sid: msg.sid, status: msg.status });
   } catch (e) {
+    console.error('POST /api/contacts/:id/send error:', e);
+    // Guardar intento fallido para no perder contexto
+    try {
+      const { body, mediaUrls } = req.body || {};
+      const contact = await Contact.findById(req.params.id);
+      if (contact) {
+        await appendConversationMessage({
+          phone: contact.phone,
+          role: 'agent',
+          source: 'human',
+          body: body || null,
+          media: Array.isArray(mediaUrls) ? mediaUrls : [],
+          messageSid: undefined,
+          lastStatus: 'failed',
+          statusHistory: [{ status: 'failed', at: new Date(), errorMessage: e.message }]
+        });
+      }
+    } catch {}
     return res.status(500).json({ error: e.message });
   }
 });
 
 /**
  * POST /api/contacts/send
- * body: { phone: "+34...", body: "texto" }
- * (upsert de contacto si no existe; agentEnabled queda true por defecto)
+ * body: { phone: "+34...", body?: "texto", mediaUrls?: string[] }
+ * (upsert de contacto si no existe)
+ * ➜ Extendido para soportar envío de imágenes, mute guard y guardado en Conversation
  */
 router.post('/send', async (req, res) => {
   try {
-    const { phone, body } = req.body || {};
+    const { phone, body, mediaUrls } = req.body || {};
     if (!phone || !assertE164(phone)) {
       return res.status(400).json({ error: 'Falta phone en E.164' });
     }
-    if (!body) return res.status(400).json({ error: 'Falta body' });
+    if (!body && (!Array.isArray(mediaUrls) || mediaUrls.length === 0)) {
+      return res.status(400).json({ error: 'Falta body o mediaUrls' });
+    }
+
+    // Upsert rápido para tener contacto y verificar estado
+    const contact = await Contact.findOneAndUpdate(
+      { phone },
+      { $setOnInsert: { createdAt: new Date(), agentEnabled: true } },
+      { upsert: true, new: true }
+    );
+
+    // Guard de mute/bloqueo
+    if (contact.status === 'blocked' || contact.agentEnabled === false) {
+      return res.status(403).json({ ok: false, error: 'Contacto bloqueado/muteado' });
+    }
 
     const { client, from } = await getTwilio();
-    const msg = await client.messages.create({
-      from,
-      to: toWhatsApp(phone),
-      body
-    });
+    const payload = { from, to: toWhatsApp(phone) };
+    if (body) payload.body = body;
+    if (Array.isArray(mediaUrls) && mediaUrls.length > 0) {
+      payload.mediaUrl = mediaUrls;
+    }
+
+    const msg = await client.messages.create(payload);
+
+    // Guardar outbound del agente (humano)
+    try {
+      await appendConversationMessage({
+        phone,
+        role: 'agent',
+        source: 'human',
+        body: body || null,
+        media: Array.isArray(mediaUrls) ? mediaUrls : [],
+        messageSid: msg.sid,
+        lastStatus: 'queued',
+        statusHistory: [{ status: 'queued', at: new Date() }]
+      });
+    } catch (e) {
+      console.warn('appendConversationMessage fallo (/send):', e.message);
+    }
 
     await Contact.findOneAndUpdate(
       { phone },
-      { $setOnInsert: { createdAt: new Date() }, $set: { lastOutboundAt: new Date() } },
+      { $set: { lastOutboundAt: new Date() } },
       { upsert: true }
     );
 
     return res.json({ ok: true, sid: msg.sid, status: msg.status });
   } catch (e) {
+    console.error('POST /api/contacts/send error:', e);
+    // Guardar intento fallido igualmente
+    try {
+      const { phone, body, mediaUrls } = req.body || {};
+      if (phone && assertE164(phone)) {
+        await appendConversationMessage({
+          phone,
+          role: 'agent',
+          source: 'human',
+          body: body || null,
+          media: Array.isArray(mediaUrls) ? mediaUrls : [],
+          messageSid: undefined,
+          lastStatus: 'failed',
+          statusHistory: [{ status: 'failed', at: new Date(), errorMessage: e.message }]
+        });
+      }
+    } catch {}
     return res.status(500).json({ error: e.message });
   }
 });
